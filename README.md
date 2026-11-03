@@ -16,13 +16,81 @@
 
 ## Стек
 
-Python + FastAPI, PostgreSQL + SQLAlchemy, React + TypeScript (Vite), библиотека UI-компонентов Mantine, Git.
+Python + FastAPI, PostgreSQL + SQLAlchemy, React + TypeScript (Vite), библиотека UI-компонентов Mantine, Docker, Git.
+
+## Структура backend (`backend/app`)
+
+| Файл          | Назначение                                                       |
+| ------------- | ---------------------------------------------------------------- |
+| `routers/`    | маршруты API: объекты, договоры, платежи, счета, документы       |
+| `models.py`   | модели SQLAlchemy (таблицы БД)                                   |
+| `schemas.py`  | схемы валидации запросов и ответов (Pydantic)                    |
+| `database.py` | подключение к БД и сессии                                        |
+| `crud.py`     | операции с данными и бизнес-логика (поиск, проверки, сохранение) |
+| `config.py`   | настройки приложения из переменных окружения                     |
+
+## Модель данных
+
+- `properties` — объекты недвижимости (адрес, город, площадь, комнаты, описание)
+- `leases` — договоры; внешний ключ `property_id` → `properties`; арендатор (имя, email), сумма аренды, даты начала и окончания
+- `payments` — платежи; внешний ключ `lease_id` → `leases`
+- `bills` — коммунальные счета; внешний ключ `lease_id` → `leases`
+- `documents` — документы (файлы хранятся на диске в `uploads/`); внешний ключ `lease_id` → `leases`
+
+Связи: у одного объекта может быть много договоров, у одного договора — много платежей, счетов и документов. Удаление объекта удаляет его договоры, удаление договора — его платежи, счета и документы.
+
+## API
+
+Интерактивная документация (Swagger): http://localhost:8000/docs
+
+| Метод и путь                                                                                | Действие           |
+| ------------------------------------------------------------------------------------------- | ------------------ |
+| `GET/POST /properties`, `GET/PUT/DELETE /properties/{id}`                                   | объекты            |
+| `GET/POST /leases`, `GET/PUT/DELETE /leases/{id}`                                           | договоры           |
+| `GET/POST /leases/{id}/payments`, `PUT/DELETE /payments/{id}`                               | платежи            |
+| `GET/POST /leases/{id}/bills`, `PUT/DELETE /bills/{id}`                                     | коммунальные счета |
+| `GET/POST /leases/{id}/documents`, `GET /documents/{id}/download`, `DELETE /documents/{id}` | документы          |
+
+Ошибки: `404` — запись не найдена, `400` — нарушены правила (например, дата окончания раньше начала), `422` — некорректные данные.
 
 ## Структура frontend (`frontend/src`)
 
 - `pages/` — страницы (по одной на экран)
 - `components/` — общие компоненты (шапка с меню)
 - `data/demo.ts` — демонстрационные данные (на этом этапе API ещё нет)
+
+## Запуск backend и БД
+
+### Через Docker
+
+Нужен установленный Docker Desktop.
+
+```
+copy .env.example .env
+# откройте .env и впишите пароль для БД
+docker compose up --build
+```
+
+Поднимутся два контейнера: `db` (PostgreSQL) и `backend` (FastAPI). Таблицы создаются автоматически при старте backend. API: http://localhost:8000/docs
+
+Полезные команды:
+
+- `docker compose down` — остановить контейнеры (данные БД сохраняются)
+- `docker compose down -v` — остановить и удалить данные БД (чтобы создать таблицы заново)
+- `docker compose logs backend` — посмотреть логи backend
+
+### Без Docker
+
+Нужны Python 3.12+ и PostgreSQL с созданной базой `rental`.
+
+```
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --reload
+```
 
 ## Запуск frontend
 
