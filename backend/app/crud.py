@@ -1,13 +1,6 @@
 from fastapi import HTTPException
 
-from . import models
-
-
-def get_or_404(db, model, item_id, message):
-    item = db.get(model, item_id)
-    if not item:
-        raise HTTPException(404, message)
-    return item
+from app import models
 
 
 def save(db, obj):
@@ -29,6 +22,7 @@ def remove(db, obj):
 
 
 def check_lease(db, data):
-    get_or_404(db, models.Property, data.property_id, "Объект не найден")
+    if db.get(models.Property, data.property_id) is None:
+        raise HTTPException(404, "Объект не найден")
     if data.end_date <= data.start_date:
         raise HTTPException(400, "Дата окончания должна быть позже даты начала")

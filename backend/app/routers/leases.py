@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import crud, models, schemas
-from ..database import get_db
+from app import crud, models, schemas
+from app.database import get_db
 
 router = APIRouter(prefix="/leases", tags=["leases"])
 NOT_FOUND = "Договор не найден"
@@ -15,7 +15,10 @@ def list_leases(db: Session = Depends(get_db)):
 
 @router.get("/{lease_id}", response_model=schemas.LeaseOut)
 def get_lease(lease_id: int, db: Session = Depends(get_db)):
-    return crud.get_or_404(db, models.Lease, lease_id, NOT_FOUND)
+    lease = db.get(models.Lease, lease_id)
+    if lease is None:
+        raise HTTPException(404, NOT_FOUND)
+    return lease
 
 
 @router.post("", response_model=schemas.LeaseOut, status_code=201)
@@ -26,11 +29,16 @@ def create_lease(data: schemas.LeaseIn, db: Session = Depends(get_db)):
 
 @router.put("/{lease_id}", response_model=schemas.LeaseOut)
 def update_lease(lease_id: int, data: schemas.LeaseIn, db: Session = Depends(get_db)):
-    lease = crud.get_or_404(db, models.Lease, lease_id, NOT_FOUND)
+    lease = db.get(models.Lease, lease_id)
+    if lease is None:
+        raise HTTPException(404, NOT_FOUND)
     crud.check_lease(db, data)
     return crud.update(db, lease, data)
 
 
 @router.delete("/{lease_id}", status_code=204)
 def delete_lease(lease_id: int, db: Session = Depends(get_db)):
-    crud.remove(db, crud.get_or_404(db, models.Lease, lease_id, NOT_FOUND))
+    lease = db.get(models.Lease, lease_id)
+    if lease is None:
+        raise HTTPException(404, NOT_FOUND)
+    crud.remove(db, lease)
