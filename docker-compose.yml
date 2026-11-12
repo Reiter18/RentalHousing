@@ -23,6 +23,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       DATABASE_HOST: db
       DATABASE_PORT: ${DATABASE_PORT:-5432}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-15}
+      REFRESH_TOKEN_DAYS: ${REFRESH_TOKEN_DAYS:-7}
     ports:
       - "8000:8000"
     depends_on:
@@ -31,7 +34,16 @@ services:
     volumes:
       - ./backend/app:/app/app
       - uploads:/app/uploads
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
 
 volumes:
   db_data:

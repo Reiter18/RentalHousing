@@ -32,6 +32,7 @@ export default function LeasePage() {
   const [docAuthor, setDocAuthor] = useState("");
   const lease = leases.find((x) => x.id === Number(id));
   if (!lease) return <DataState empty message="Договор не найден." />;
+  const currentLeaseId = lease.id;
 
   const property = properties.find((x) => x.id === lease.propertyId);
   const leasePayments = payments.filter((x) => x.leaseId === lease.id);
@@ -53,13 +54,13 @@ export default function LeasePage() {
     if (entry === "bill" && (form.kind.trim().length < 2 || !form.period || !Number.isFinite(amount) || amount <= 0)) return setFormError("Укажите услугу, дату и положительную сумму.");
     if (entry === "document" && (form.title.trim().length < 2 || !form.filename.trim() || form.author.trim().length < 2 || !form.date)) return setFormError("Заполните название, имя файла, автора и дату.");
     if (entry === "payment") setPayments((old) => editingId === null
-      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: lease.id, date: form.date, amount, comment: form.comment.trim() }]
+      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: currentLeaseId, date: form.date, amount, comment: form.comment.trim() }]
       : old.map((x) => x.id === editingId ? { ...x, date: form.date, amount, comment: form.comment.trim() } : x));
     if (entry === "bill") setBills((old) => editingId === null
-      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: lease.id, kind: form.kind.trim(), period: form.period, amount, paid: form.paid === "true" }]
+      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: currentLeaseId, kind: form.kind.trim(), period: form.period, amount, paid: form.paid === "true" }]
       : old.map((x) => x.id === editingId ? { ...x, kind: form.kind.trim(), period: form.period, amount, paid: form.paid === "true" } : x));
     if (entry === "document") setDocuments((old) => editingId === null
-      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: lease.id, title: form.title.trim(), filename: form.filename.trim(), author: form.author.trim(), date: form.date }]
+      ? [...old, { id: Math.max(0, ...old.map((x) => x.id)) + 1, leaseId: currentLeaseId, title: form.title.trim(), filename: form.filename.trim(), author: form.author.trim(), date: form.date }]
       : old.map((x) => x.id === editingId ? { ...x, title: form.title.trim(), filename: form.filename.trim(), author: form.author.trim(), date: form.date } : x));
     setEntry(null); setEditingId(null); setForm(blank); setFormError("");
   }

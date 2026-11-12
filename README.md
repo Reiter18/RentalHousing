@@ -49,9 +49,9 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-Поднимутся PostgreSQL и FastAPI. Таблицы создаются при старте backend. Swagger: <http://localhost:8000/docs>.
+Поднимутся PostgreSQL, fronend и FastAPI. Таблицы создаются при старте backend. Swagger: <http://localhost:8000/docs>.
 
-Frontend запускается в отдельном терминале (frontend-сервиса в Compose нет):
+## Запуск fronend отдельно
 
 ```powershell
 cd frontend
