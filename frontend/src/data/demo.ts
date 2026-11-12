@@ -4,6 +4,7 @@ export type Property = {
   city: string;
   area: number;
   rooms: number;
+  description?: string;
 };
 export type Lease = {
   id: number;
