@@ -47,6 +47,7 @@ export async function apiRequest(path: string, init: RequestInit = {}): Promise<
 export async function apiJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await apiRequest(path, init);
   const body = response.status === 204 ? null : await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.detail || "Ошибка запроса к серверу");
+  if (!response.ok) { const detail = body?.detail; throw new Error(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map((x: { msg?: string }) => x.msg || "Ошибка поля").join(", ") : `Ошибка сервера: ${response.status}`); }
   return body as T;
 }
+
